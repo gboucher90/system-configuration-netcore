@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0-*",
+  "title": "System.Configuration.Core",
+  "description": "Partial port of System.Configuration to .NET Core",
+  "language": "en-US",
+  "packOptions": {
+    "projectUrl": "http://www.newtonsoft.com/json",
+    "tags": ["core", "configuration"]
+  },
+  "dependencies": {
+    "System.Collections": "4.0.11",
+    "System.Collections.Specialized": "4.0.1",
+    "System.Collections.NonGeneric": "4.0.1",
+    "System.ComponentModel": "4.0.1",
+    "System.ComponentModel.TypeConverter": "4.1.0",
+    "System.Reflection": "4.1.0",
+    "System.Reflection.Primitives": "4.0.1",
+    "System.Reflection.Extensions": "4.0.1",
+    "System.Reflection.TypeExtensions": "4.1.0",
+    "System.Runtime.InteropServices": "4.1.0",
+    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0",
+    "System.Xml.ReaderWriter": "4.0.11",
+    "System.Xml.XmlDocument": "4.0.1"
+  },
+  "frameworks": {
+    "netstandard1.5": {
+      "imports": [
+        "portable-net45+win8"
+      ],
+      "dependencies": {
+        "NETStandard.Library": "1.6.0"
+      }
+    }
+  }
+}
