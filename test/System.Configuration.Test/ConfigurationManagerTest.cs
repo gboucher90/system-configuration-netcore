@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.IO;
+using NUnit.Framework;
 
 namespace System.Configuration.Test
 {
@@ -8,7 +9,7 @@ namespace System.Configuration.Test
         [SetUp]
         public void Setup()
         {
-            ConfigurationManager.Initialize("Data/App.config");
+            ConfigurationManager.Initialize("Data" + Path.DirectorySeparatorChar + "App.config");
         }
 
         [Test]
