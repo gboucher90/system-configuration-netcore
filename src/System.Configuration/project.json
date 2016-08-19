@@ -4,8 +4,20 @@
   "description": "Partial port of System.Configuration to .NET Core",
   "language": "en-US",
   "packOptions": {
-    "projectUrl": "http://www.newtonsoft.com/json",
-    "tags": ["core", "configuration"]
+    "tags": [ "core", "configuration" ]
+  },
+  "configurations": {
+    "Debug": {
+      "buildOptions": {
+        "define": [ "DEBUG" ]
+      }
+    },
+    "Release": {
+      "buildOptions": {
+        "define": [ "RELEASE" ],
+        "optimize": true
+      }
+    }
   },
   "dependencies": {
     "System.Collections": "4.0.11",
