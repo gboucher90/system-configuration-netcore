@@ -72,5 +72,15 @@ namespace System.Configuration.Test
             Assert.AreEqual("george", config.Employees[2].FirstName);
             Assert.AreEqual("bush", config.Employees[2].LastName);
         }
+
+        [Test]
+        public void ThrowIfRequiredAttributeIsMissing()
+        {
+            Assert.Throws<ConfigurationErrorsException>(() =>
+            {
+                var config = (SimpleConfigSection)ConfigurationManager.GetSection("simpleConfig");
+            });
+        }
+
     }
 }

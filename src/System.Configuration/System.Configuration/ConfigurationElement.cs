@@ -440,7 +440,7 @@ namespace System.Configuration
                         throw new ConfigurationErrorsException(
                             "The element <" + prop.Name + "> may only appear once in this section.", reader);
 
-                    var val = (ConfigurationElement) prop.Value;
+                    var val = (ConfigurationElement)prop.Value;
                     val.DeserializeElement(reader, serializeCollectionKey);
                     readProps[prop] = prop.Name;
 
@@ -452,19 +452,17 @@ namespace System.Configuration
             _modified = false;
 
             foreach (PropertyInformation prop in ElementInformation.Properties)
+            {
                 if (!string.IsNullOrEmpty(prop.Name) && prop.IsRequired && !readProps.ContainsKey(prop))
                 {
-                    var p = ElementInformation.Properties[prop.Name];
-                    if (p == null)
+                    var val = OnRequiredPropertyNotFound(prop.Name);
+                    if (!Equals(val, prop.DefaultValue))
                     {
-                        var val = OnRequiredPropertyNotFound(prop.Name);
-                        if (!Equals(val, prop.DefaultValue))
-                        {
-                            prop.Value = val;
-                            prop.IsModified = false;
-                        }
+                        prop.Value = val;
+                        prop.IsModified = false;
                     }
                 }
+            }
 
             PostDeserialize();
         }
@@ -583,7 +581,7 @@ namespace System.Configuration
                 if (!prop.IsElement)
                     continue;
 
-                var val = (ConfigurationElement) prop.Value;
+                var val = (ConfigurationElement)prop.Value;
                 if (val != null)
                     wroteData = val.SerializeToXmlElement(writer, prop.Name) || wroteData;
             }
@@ -643,7 +641,7 @@ namespace System.Configuration
                     continue;
                 }
 
-                var sourceElement = (ConfigurationElement) sourceValue;
+                var sourceElement = (ConfigurationElement)sourceValue;
                 if (isMinimalOrModified && !sourceElement.IsModified())
                     continue;
                 if (parentValue == null)
@@ -652,8 +650,8 @@ namespace System.Configuration
                     continue;
                 }
 
-                var parentElement = (ConfigurationElement) parentValue;
-                var copy = (ConfigurationElement) unmergedProp.Value;
+                var parentElement = (ConfigurationElement)parentValue;
+                var copy = (ConfigurationElement)unmergedProp.Value;
                 copy.Unmerge(sourceElement, parentElement, updateMode);
             }
         }
@@ -744,8 +742,8 @@ namespace System.Configuration
 			 * Ok, it's an element that has been set in a parent configuration file.			 * 
 			 * Recursively call HasValues() to check whether it's been locally modified.
 			 */
-            var element = (ConfigurationElement) prop.Value;
-            var parentElement = (ConfigurationElement) parentOrDefault;
+            var element = (ConfigurationElement)prop.Value;
+            var parentElement = (ConfigurationElement)parentOrDefault;
 
             return element.HasValues(parentElement, mode);
         }
@@ -791,12 +789,12 @@ namespace System.Configuration
                 if (!prop.IsElement)
                     continue;
 
-                var elem = (ConfigurationElement) prop.Value;
+                var elem = (ConfigurationElement)prop.Value;
                 if (parent == null || !parent.HasValue(prop.Name))
                     elem.PrepareSave(null, mode);
                 else
                 {
-                    var parentValue = (ConfigurationElement) parent[prop.Name];
+                    var parentValue = (ConfigurationElement)parent[prop.Name];
                     elem.PrepareSave(parentValue, mode);
                 }
             }
@@ -858,9 +856,9 @@ namespace System.Configuration
                 var validator = validatorAttr != null ? validatorAttr.ValidatorInstance : null;
 
 
-                var convertAttr = (TypeConverterAttribute) prop.GetCustomAttribute(typeof(TypeConverterAttribute));
+                var convertAttr = (TypeConverterAttribute)prop.GetCustomAttribute(typeof(TypeConverterAttribute));
                 var converter = convertAttr != null
-                    ? (TypeConverter) Activator.CreateInstance(Type.GetType(convertAttr.ConverterTypeName), true)
+                    ? (TypeConverter)Activator.CreateInstance(Type.GetType(convertAttr.ConverterTypeName), true)
                     : null;
                 var cp = new ConfigurationProperty(name, prop.PropertyType, at.DefaultValue, converter, validator,
                     at.Options);
