@@ -32,49 +32,15 @@ namespace System.Configuration
 {
     internal class InternalConfigurationRoot : IInternalConfigRoot
     {
-        private IInternalConfigHost _host;
-
-
-        public IInternalConfigRecord GetConfigRecord(string configPath)
-        {
-            throw new NotImplementedException();
-        }
 
         public object GetSection(string section, string configPath)
         {
-            var rec = GetConfigRecord(configPath);
-            return rec.GetSection(section);
+            throw new NotImplementedException();
         }
-
 
         public string GetUniqueConfigPath(string configPath)
         {
             return configPath;
         }
-
-
-        public IInternalConfigRecord GetUniqueConfigRecord(string configPath)
-        {
-            return GetConfigRecord(GetUniqueConfigPath(configPath));
-        }
-
-        public void Init(IInternalConfigHost host, bool isDesignTime)
-        {
-            _host = host;
-            IsDesignTime = isDesignTime;
-        }
-
-
-        public void RemoveConfig(string configPath)
-        {
-            _host.DeleteStream(configPath);
-
-            if (ConfigRemoved != null)
-                ConfigRemoved(this, new InternalConfigEventArgs(configPath));
-        }
-
-        public bool IsDesignTime { get; private set; }
-
-        public event InternalConfigEventHandler ConfigRemoved;
     }
 }

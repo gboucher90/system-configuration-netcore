@@ -35,14 +35,21 @@ using System.Xml;
 
 namespace System.Configuration
 {
-/* disable the obsolete warnings about ConfigurationException */
+    /* disable the obsolete warnings about ConfigurationException */
 #pragma warning disable 618
 
     public class ConfigurationErrorsException : Exception
     {
-        //
-        // Constructors
-        //
+
+        public string Filename { get; private set; }
+
+        public int LineNumber { get; private set; }
+
+        public ICollection Errors
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public ConfigurationErrorsException()
         {
         }
@@ -85,55 +92,29 @@ namespace System.Configuration
         public ConfigurationErrorsException(string message, Exception inner, string filename, int line)
             : base(message, inner)
         {
+            Filename = filename;
+            LineNumber = line;
         }
 
-        //
-        // Properties
-        //
-
-
-        public ICollection Errors
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-
-        //
-        // Methods
-        //
         public static string GetFilename(XmlReader reader)
         {
-            // FIXME: eliminate this silly compatibility.
-            if (reader is IConfigErrorInfo)
-                return ((IConfigErrorInfo) reader).Filename;
-
             return reader != null ? reader.BaseURI : null;
         }
 
         public static int GetLineNumber(XmlReader reader)
         {
-            // FIXME: eliminate this silly compatibility.
-            if (reader is IConfigErrorInfo)
-                return ((IConfigErrorInfo) reader).LineNumber;
-
             var li = reader as IXmlLineInfo;
             return li != null ? li.LineNumber : 0;
         }
 
         public static string GetFilename(XmlNode node)
         {
-            if (!(node is IConfigErrorInfo))
-                return null;
-
-            return ((IConfigErrorInfo) node).Filename;
+            return null;
         }
 
         public static int GetLineNumber(XmlNode node)
         {
-            if (!(node is IConfigErrorInfo))
-                return 0;
-
-            return ((IConfigErrorInfo) node).LineNumber;
+            return 0;
         }
     }
 #pragma warning restore

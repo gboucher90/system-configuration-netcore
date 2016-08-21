@@ -40,7 +40,6 @@ namespace System.Configuration.Internal
         object CreateConfigurationContext(string configPath, string locationSubPath);
         object CreateDeprecatedConfigContext(string configPath);
 
-        void DeleteStream(string streamName);
         string GetConfigPathFromLocationSubPath(string configPath, string locatinSubPath);
         Type GetConfigType(string typeName, bool throwOnError);
         string GetConfigTypeName(Type t);
@@ -54,12 +53,8 @@ namespace System.Configuration.Internal
             ConfigurationAllowExeDefinition allowExeDefinition);
 
         Stream OpenStreamForRead(string streamName);
-        Stream OpenStreamForRead(string streamName, bool assertPermissions);
 
         void VerifyDefinitionAllowed(string configPath, ConfigurationAllowDefinition allowDefinition,
-            ConfigurationAllowExeDefinition allowExeDefinition, IConfigErrorInfo errorInfo);
-
-        void WriteCompleted(string streamName, bool success, object writeContext);
-        void WriteCompleted(string streamName, bool success, object writeContext, bool assertPermissions);
+            ConfigurationAllowExeDefinition allowExeDefinition);
     }
 }

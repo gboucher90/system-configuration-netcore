@@ -39,7 +39,7 @@ namespace System.Configuration
             return new Configuration(system, null);
         }
 
-        public string NormalizeLocationSubPath(string subPath, IConfigErrorInfo errorInfo)
+        public string NormalizeLocationSubPath(string subPath)
         {
             return subPath;
         }
@@ -54,7 +54,6 @@ namespace System.Configuration
             _hostInitParams = hostInitParams;
             Host = (IInternalConfigHost) Activator.CreateInstance(typeConfigHost);
             Root = new InternalConfigurationRoot();
-            Root.Init(Host, false);
         }
 
         public IInternalConfigHost Host { get; private set; }

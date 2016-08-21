@@ -43,11 +43,6 @@ namespace System.Configuration
             return null;
         }
 
-        public virtual void DeleteStream(string streamName)
-        {
-            File.Delete(streamName);
-        }
-
         public virtual string GetConfigPathFromLocationSubPath(string configPath, string locationSubPath)
         {
             return configPath;
@@ -80,15 +75,11 @@ namespace System.Configuration
         public virtual bool IsDefinitionAllowed(string configPath, ConfigurationAllowDefinition allowDefinition,
             ConfigurationAllowExeDefinition allowExeDefinition)
         {
-            switch (allowDefinition)
+            if (allowDefinition == ConfigurationAllowDefinition.MachineOnly)
             {
-                case ConfigurationAllowDefinition.MachineOnly:
-                    return configPath == "machine";
-                case ConfigurationAllowDefinition.MachineToApplication:
-                    return configPath == "machine" || configPath == "exe";
-                default:
-                    return true;
+                return false;
             }
+            return true;
         }
 
         public virtual Stream OpenStreamForRead(string streamName)
@@ -99,26 +90,13 @@ namespace System.Configuration
             return new FileStream(streamName, FileMode.Open, FileAccess.Read);
         }
 
-        public virtual Stream OpenStreamForRead(string streamName, bool assertPermissions)
-        {
-            throw new NotImplementedException();
-        }
-
         public virtual void VerifyDefinitionAllowed(string configPath, ConfigurationAllowDefinition allowDefinition,
-            ConfigurationAllowExeDefinition allowExeDefinition, IConfigErrorInfo errorInfo)
+            ConfigurationAllowExeDefinition allowExeDefinition)
         {
             if (!IsDefinitionAllowed(configPath, allowDefinition, allowExeDefinition))
                 throw new ConfigurationErrorsException(
                     "The section can't be defined in this file (the allowed definition context is '" + allowDefinition +
-                    "').", errorInfo.Filename, errorInfo.LineNumber);
-        }
-
-        public virtual void WriteCompleted(string streamName, bool success, object writeContext)
-        {
-        }
-
-        public virtual void WriteCompleted(string streamName, bool success, object writeContext, bool assertPermissions)
-        {
+                    "').");
         }
 
         public virtual bool SupportsChangeNotifications
@@ -157,8 +135,8 @@ namespace System.Configuration
 
         public override void Init(IInternalConfigRoot root, params object[] hostInitParams)
         {
-            _map = (ExeConfigurationFileMap) hostInitParams[0];
-            _level = (ConfigurationUserLevel) hostInitParams[1];
+            _map = (ExeConfigurationFileMap)hostInitParams[0];
+            _level = (ConfigurationUserLevel)hostInitParams[1];
             CheckFileMap(_level, _map);
         }
 
@@ -182,11 +160,11 @@ namespace System.Configuration
         public override void InitForConfiguration(ref string locationSubPath, out string configPath,
             out string locationConfigPath, IInternalConfigRoot root, params object[] hostInitConfigurationParams)
         {
-            _map = (ExeConfigurationFileMap) hostInitConfigurationParams[0];
+            _map = (ExeConfigurationFileMap)hostInitConfigurationParams[0];
 
             if (hostInitConfigurationParams.Length > 1 &&
                 hostInitConfigurationParams[1] is ConfigurationUserLevel)
-                _level = (ConfigurationUserLevel) hostInitConfigurationParams[1];
+                _level = (ConfigurationUserLevel)hostInitConfigurationParams[1];
 
             CheckFileMap(_level, _map);
 
