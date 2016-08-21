@@ -10,7 +10,6 @@ if [ -d $artifactsFolder ]; then
 fi
 
 dotnet restore
-cd ./test/System.Configuration.Test/
-dotnet test -c Release -f netcoreapp1.0
-cd ../..
-dotnet pack ./src/System.Configuration -c Release -o ./artifacts
+dotnet build ./src/* -c Release
+dotnet test ./test/* -c Release -f netcoreapp1.0
+dotnet pack ./src/* -c Release -o ./artifacts

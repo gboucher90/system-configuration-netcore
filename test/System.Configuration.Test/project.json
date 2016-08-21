@@ -1,8 +1,12 @@
 ﻿{
+  "buildOptions": {
+    "copyToOutput": { "include": [ "Data" ] }
+  },
   "dependencies": {
     "System.Configuration": {
       "target": "project"
     },
+    "System.Reflection.TypeExtensions": "4.1.0",
     "NUnit": "3.4.0",
     "dotnet-test-nunit": "3.4.0-beta-2"
   },

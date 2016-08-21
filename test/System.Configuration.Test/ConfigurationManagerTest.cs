@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace System.Configuration.Test
@@ -6,10 +7,19 @@ namespace System.Configuration.Test
     [TestFixture]
     public class ConfigurationManagerTest
     {
+        private static string GetTestAssemblyDirectory()
+        {
+            var testAssemblyLocation = typeof(ConfigurationManagerTest).GetTypeInfo().Assembly.Location;
+            return Path.GetDirectoryName(testAssemblyLocation);
+        }
+
         [SetUp]
         public void Setup()
         {
-            ConfigurationManager.Initialize("Data" + Path.DirectorySeparatorChar + "App.config");
+            var testAssemblyDirectory = GetTestAssemblyDirectory();
+            var configPath = Path.Combine(testAssemblyDirectory, "Data", "App.config");
+
+            ConfigurationManager.Initialize(configPath);
         }
 
         [Test]
