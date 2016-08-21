@@ -75,7 +75,6 @@ namespace System.Configuration
 
         public bool IsDesignTime { get; private set; }
 
-        public event InternalConfigEventHandler ConfigChanged;
         public event InternalConfigEventHandler ConfigRemoved;
     }
 }

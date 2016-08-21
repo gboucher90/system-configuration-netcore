@@ -56,7 +56,7 @@ namespace System.Configuration
 
         public new bool IsReadOnly { get; private set; }
 
-        public string this[int index]
+        public new string this[int index]
         {
             get { return base[index]; }
             set
@@ -68,7 +68,7 @@ namespace System.Configuration
             }
         }
 
-        public void Add(string value)
+        public new void Add(string value)
         {
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
@@ -76,7 +76,7 @@ namespace System.Configuration
             _modified = true;
         }
 
-        public void AddRange(string[] range)
+        public new void AddRange(string[] range)
         {
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
@@ -104,7 +104,7 @@ namespace System.Configuration
             return col;
         }
 
-        public void Insert(int index, string value)
+        public new void Insert(int index, string value)
         {
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
@@ -112,7 +112,7 @@ namespace System.Configuration
             _modified = true;
         }
 
-        public void Remove(string value)
+        public new void Remove(string value)
         {
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 

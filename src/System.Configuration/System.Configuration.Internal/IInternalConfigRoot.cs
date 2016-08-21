@@ -39,7 +39,6 @@ namespace System.Configuration.Internal
         void Init(IInternalConfigHost host, bool isDesignTime);
         void RemoveConfig(string configPath);
 
-        event InternalConfigEventHandler ConfigChanged;
         event InternalConfigEventHandler ConfigRemoved;
     }
 }
