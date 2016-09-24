@@ -118,14 +118,6 @@ namespace System.Configuration
         {
             get { return false; }
         }
-
-        public virtual Stream OpenStreamForWrite(string streamName, string templateStreamName, ref object writeContext)
-        {
-            string dir = Path.GetDirectoryName(streamName);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-            return new FileStream(streamName, FileMode.Create, FileAccess.Write);
-        }
     }
 
     internal class ExeConfigurationHost : InternalConfigurationHost

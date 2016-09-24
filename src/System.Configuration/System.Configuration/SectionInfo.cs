@@ -164,22 +164,6 @@ namespace System.Configuration
             reader.Skip();
         }
 
-        public override void WriteConfig(Configuration cfg, XmlWriter writer, ConfigurationSaveMode mode)
-        {
-            writer.WriteStartElement("section");
-            writer.WriteAttributeString("name", Name);
-            writer.WriteAttributeString("type", TypeName);
-            if (!_allowLocation)
-                writer.WriteAttributeString("allowLocation", "false");
-            if (_allowDefinition != ConfigurationAllowDefinition.Everywhere)
-                writer.WriteAttributeString("allowDefinition", _allowDefinition.ToString());
-            if (_allowExeDefinition != ConfigurationAllowExeDefinition.MachineToApplication)
-                writer.WriteAttributeString("allowExeDefinition", _allowExeDefinition.ToString());
-            if (!_requirePermission)
-                writer.WriteAttributeString("requirePermission", "false");
-            writer.WriteEndElement();
-        }
-
         public override void ReadData(Configuration config, XmlReader reader, bool overrideAllowed)
         {
             if (!config.HasFile && !_allowLocation)
@@ -199,43 +183,6 @@ namespace System.Configuration
                 ThrowException("The section <" + Name + "> is defined more than once in the same configuration file.",
                     reader);
             config.SetSectionXml(this, reader.ReadOuterXml());
-        }
-
-        public override void WriteData(Configuration config, XmlWriter writer, ConfigurationSaveMode mode)
-        {
-            string xml;
-
-            var section = config.GetSectionInstance(this, false);
-            if (section != null)
-            {
-                var parentSection = config.Parent != null ? config.Parent.GetSectionInstance(this, false) : null;
-                xml = section.SerializeSection(parentSection, Name, mode);
-
-                var externalDataXml = section.ExternalDataXml;
-                var filePath = config.FilePath;
-
-                if (!string.IsNullOrEmpty(filePath) && !string.IsNullOrEmpty(externalDataXml))
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(filePath), section.SectionInformation.ConfigSource);
-
-                    using (var sw = File.CreateText(path))
-                    {
-                        sw.Write(externalDataXml);
-                    }
-                }
-            }
-            else
-            {
-                xml = config.GetSectionXml(this);
-            }
-
-            if (!string.IsNullOrEmpty(xml))
-            {
-                writer.WriteRaw(xml);
-/*				XmlTextReader tr = new XmlTextReader (new StringReader (xml));
-				writer.WriteNode (tr, true);
-				tr.Close ();*/
-            }
         }
 
         internal override void Merge(ConfigInfo data)

@@ -245,31 +245,6 @@ namespace System.Configuration
             reader.ReadEndElement();
         }
 
-        public override void WriteConfig(Configuration cfg, XmlWriter writer, ConfigurationSaveMode mode)
-        {
-            if (Name != null)
-            {
-                writer.WriteStartElement("sectionGroup");
-                writer.WriteAttributeString("name", Name);
-                if (TypeName != null && TypeName != "" && TypeName != "System.Configuration.ConfigurationSectionGroup")
-                    writer.WriteAttributeString("type", TypeName);
-            }
-            else
-                writer.WriteStartElement("configSections");
-
-            foreach (ConfigInfoCollection col in new object[] {Sections, Groups})
-            {
-                foreach (string key in col)
-                {
-                    var cinfo = col[key];
-                    if (cinfo.HasConfigContent(cfg))
-                        cinfo.WriteConfig(cfg, writer, mode);
-                }
-            }
-
-            writer.WriteEndElement();
-        }
-
         private void ReadRemoveSection(XmlReader reader)
         {
             if (!reader.MoveToNextAttribute() || reader.Name != "name")
@@ -330,17 +305,16 @@ namespace System.Configuration
                         ThrowException("<location> elements are only allowed in <configuration> elements.", reader);
 
                     string allowOverrideAttr = reader.GetAttribute("allowOverride");
-                    var allowOverride = allowOverrideAttr == null || allowOverrideAttr.Length == 0 ||
+                    var allowOverride = string.IsNullOrEmpty(allowOverrideAttr) ||
                                         bool.Parse(allowOverrideAttr);
                     string path = reader.GetAttribute("path");
-                    if (path != null && path.Length > 0)
+                    if (!string.IsNullOrEmpty(path))
                     {
                         string xml = reader.ReadOuterXml();
                         var pathList = path.Split(',');
-                        string tpath;
                         foreach (var p in pathList)
                         {
-                            tpath = p.Trim();
+                            var tpath = p.Trim();
                             if (config.Locations.Find(tpath) != null)
                                 ThrowException("Sections must only appear once per config file.", reader);
 
@@ -363,7 +337,7 @@ namespace System.Configuration
             }
         }
 
-        private ConfigInfo GetConfigInfo(XmlReader reader, SectionGroupInfo current)
+        private static ConfigInfo GetConfigInfo(XmlReader reader, SectionGroupInfo current)
         {
             ConfigInfo data = null;
             if (current._sections != null)
@@ -411,31 +385,6 @@ namespace System.Configuration
                         continue;
                     _groups.Add(key, data._groups[key]);
                 }
-        }
-
-        public void WriteRootData(XmlWriter writer, Configuration config, ConfigurationSaveMode mode)
-        {
-            WriteContent(writer, config, mode, false);
-        }
-
-        public override void WriteData(Configuration config, XmlWriter writer, ConfigurationSaveMode mode)
-        {
-            writer.WriteStartElement(Name);
-            WriteContent(writer, config, mode, true);
-            writer.WriteEndElement();
-        }
-
-        public void WriteContent(XmlWriter writer, Configuration config, ConfigurationSaveMode mode, bool writeElem)
-        {
-            foreach (ConfigInfoCollection col in new object[] {Sections, Groups})
-            {
-                foreach (string key in col)
-                {
-                    var cinfo = col[key];
-                    if (cinfo.HasDataContent(config))
-                        cinfo.WriteData(config, writer, mode);
-                }
-            }
         }
 
         internal override bool HasValues(Configuration config, ConfigurationSaveMode mode)
