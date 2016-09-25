@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace System.Configuration.Test
+namespace System.Configuration.Test.Sections
 {
     /// <summary>
     /// Example from https://hoanghaivm.wordpress.com/net/custom-configuration-for-net-20/

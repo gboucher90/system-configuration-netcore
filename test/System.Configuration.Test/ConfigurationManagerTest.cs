@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Configuration.Test.Sections;
+using System.IO;
 using System.Reflection;
 using NUnit.Framework;
 
@@ -7,90 +8,101 @@ namespace System.Configuration.Test
     [TestFixture]
     public class ConfigurationManagerTest
     {
-        private static string GetTestAssemblyDirectory()
-        {
-            var testAssemblyLocation = typeof(ConfigurationManagerTest).GetTypeInfo().Assembly.Location;
-            return Path.GetDirectoryName(testAssemblyLocation);
-        }
 
-        [SetUp]
-        public void Setup()
+        [TestCase("App.implicit.config")]
+        [TestCase("App.explicit.config")]
+        public void CanReadSimpleAppSettings(string configName)
         {
-            var testAssemblyDirectory = GetTestAssemblyDirectory();
-            var configPath = Path.Combine(testAssemblyDirectory, "Data", "App.config");
+            ConfigurationManager.Initialize(GetConfigPath(configName));
 
-            ConfigurationManager.Initialize(configPath);
-        }
-
-        [Test]
-        public void CanReadSimpleAppSettings()
-        {
             Assert.AreEqual("Value1", ConfigurationManager.AppSettings["Setting1"]);
             Assert.AreEqual("Value2", ConfigurationManager.AppSettings["Setting2"]);
         }
 
-        [Test]
-        public void CanReadConnectionStrings()
+        [TestCase("App.implicit.config")]
+        [TestCase("App.explicit.config")]
+        public void CanReadConnectionStrings(string configName)
         {
-            const string expected = "Data Source=(LocalDB)\\v11.0;Initial Catalog=WingtipToys;Integrated Security=True;Pooling=False";
+            ConfigurationManager.Initialize(GetConfigPath(configName));
 
-            Assert.AreEqual(expected, ConfigurationManager.ConnectionStrings["MyDataBase"].ConnectionString);
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["MyDataBase"];
+
+            Assert.AreEqual("MyDataBase", connectionStringSettings.Name);
+            Assert.AreEqual("Data Source=(LocalDB)\\v11.0;Initial Catalog=WingtipToys;Integrated Security=True;Pooling=False", connectionStringSettings.ConnectionString);
+            Assert.AreEqual("SomeProvider", connectionStringSettings.ProviderName);
         }
 
         [Test]
         public void CustomSectionCanBeDeserialized()
         {
-            var config = (PageAppearanceSection)ConfigurationManager.GetSection("pageAppearance");
+            var configuration = ConfigurationManager.OpenExeConfiguration(GetConfigPath("App.customSections.config"));
+            var section = (PageAppearanceSection)configuration.GetSection("pageAppearance");
 
-            Assert.AreEqual(false, config.RemoteOnly);
-            Assert.AreEqual("TimesNewRoman", config.Font.Name);
-            Assert.AreEqual(15, config.Font.Size);
-            Assert.AreEqual("FFDDAA", config.Color.Foreground);
-            Assert.AreEqual("AAAAAA", config.Color.Background);
+            Assert.AreEqual(false, section.RemoteOnly);
+            Assert.AreEqual("TimesNewRoman", section.Font.Name);
+            Assert.AreEqual(15, section.Font.Size);
+            Assert.AreEqual("FFDDAA", section.Color.Foreground);
+            Assert.AreEqual("AAAAAA", section.Color.Background);
         }
 
         [Test]
         public void DefaultValuesAreCorrectlySet()
         {
-            var config = (PageAppearanceSection)ConfigurationManager.GetSection("pageAppearanceEmpty");
+            var configuration = ConfigurationManager.OpenExeConfiguration(GetConfigPath("App.customSections.config"));
+            var section = (PageAppearanceSection)configuration.GetSection("pageAppearanceEmpty");
 
-            Assert.AreEqual(true, config.RemoteOnly);
-            Assert.AreEqual("Arial", config.Font.Name);
-            Assert.AreEqual(12, config.Font.Size);
-            Assert.AreEqual("000000", config.Color.Foreground);
-            Assert.AreEqual("FFFFFF", config.Color.Background);
+            Assert.AreEqual(true, section.RemoteOnly);
+            Assert.AreEqual("Arial", section.Font.Name);
+            Assert.AreEqual(12, section.Font.Size);
+            Assert.AreEqual("000000", section.Color.Foreground);
+            Assert.AreEqual("FFFFFF", section.Color.Background);
         }
 
         [Test]
         public void ValidatorAreApplied()
         {
-            Assert.Throws<ConfigurationErrorsException>(() => ConfigurationManager.GetSection("pageAppearanceTooShortString"));
-            Assert.Throws<ConfigurationErrorsException>(() => ConfigurationManager.GetSection("pageAppearanceTooLongString"));
-            Assert.Throws<ConfigurationErrorsException>(() => ConfigurationManager.GetSection("pageAppearanceInvalidChar"));
+            var configuration = ConfigurationManager.OpenExeConfiguration(GetConfigPath("App.customSections.config"));
+
+            Assert.Throws<ConfigurationErrorsException>(() => configuration.GetSection("pageAppearanceTooShortString"));
+            Assert.Throws<ConfigurationErrorsException>(() => configuration.GetSection("pageAppearanceTooLongString"));
+            Assert.Throws<ConfigurationErrorsException>(() => configuration.GetSection("pageAppearanceInvalidChar"));
         }
 
         [Test]
         public void CanReadCollection()
         {
-            var config = (EmployeesConfigSection)ConfigurationManager.GetSection("employeesConfig");
+            var configuration = ConfigurationManager.OpenExeConfiguration(GetConfigPath("App.customSections.config"));
+            var section = (EmployeesConfigSection)configuration.GetSection("employeesConfig");
 
-            Assert.AreEqual(3, config.Employees.Count);
-            Assert.AreEqual("abraham", config.Employees[0].FirstName);
-            Assert.AreEqual("lincoln", config.Employees[0].LastName);
-            Assert.AreEqual("george", config.Employees[1].FirstName);
-            Assert.AreEqual("washington", config.Employees[1].LastName);
-            Assert.AreEqual("george", config.Employees[2].FirstName);
-            Assert.AreEqual("bush", config.Employees[2].LastName);
+            Assert.AreEqual(3, section.Employees.Count);
+            Assert.AreEqual("abraham", section.Employees[0].FirstName);
+            Assert.AreEqual("lincoln", section.Employees[0].LastName);
+            Assert.AreEqual("george", section.Employees[1].FirstName);
+            Assert.AreEqual("washington", section.Employees[1].LastName);
+            Assert.AreEqual("george", section.Employees[2].FirstName);
+            Assert.AreEqual("bush", section.Employees[2].LastName);
         }
 
         [Test]
         public void ThrowIfRequiredAttributeIsMissing()
         {
+            var configuration = ConfigurationManager.OpenExeConfiguration(GetConfigPath("App.customSections.config"));
+
             Assert.Throws<ConfigurationErrorsException>(() =>
             {
-                var config = (SimpleConfigSection)ConfigurationManager.GetSection("simpleConfig");
+                var config = (SimpleConfigSection)configuration.GetSection("simpleConfig");
             });
         }
 
+        private static string GetConfigPath(string configName)
+        {
+            return Path.Combine(GetTestAssemblyDirectory(), "Data", configName);
+        }
+
+        private static string GetTestAssemblyDirectory()
+        {
+            var assemblyLocation = typeof(ConfigurationManagerTest).GetTypeInfo().Assembly.Location;
+            return Path.GetDirectoryName(assemblyLocation);
+        }
     }
 }

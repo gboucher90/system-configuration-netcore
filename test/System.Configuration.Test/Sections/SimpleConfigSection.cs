@@ -1,4 +1,4 @@
-﻿namespace System.Configuration.Test
+﻿namespace System.Configuration.Test.Sections
 {
     public class SimpleConfigSection : ConfigurationSection
     {
