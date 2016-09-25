@@ -28,6 +28,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Xml;
+
 namespace System.Configuration
 {
     /// <summary>
@@ -48,6 +50,6 @@ namespace System.Configuration
         ///     access to the XML contents of the configuration section.
         /// </param>
         /// <returns></returns>
-        object Create(object parent, object configContext, object section);
+        object Create(object parent, object configContext, XmlNode section);
     }
 }
