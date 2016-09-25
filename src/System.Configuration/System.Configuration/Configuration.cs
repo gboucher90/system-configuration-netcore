@@ -29,6 +29,7 @@
 
 using System.Collections;
 using System.Configuration.Internal;
+using System.Configuration.System.Configuration;
 using System.IO;
 using System.Xml;
 
@@ -221,8 +222,14 @@ namespace System.Configuration
                 _rootGroup = parent._rootGroup;
             else
             {
-                _rootGroup = new SectionGroupInfo();
-                _rootGroup.StreamName = FileName;
+                _rootGroup = new SectionGroupInfo {StreamName = FileName};
+
+                // Addd Machine.config sections
+                foreach (var keyValuePair in MachineConfig.ConfigSections)
+                {
+                    var sectionInfo = CreateSectionInfo(system, configPath, keyValuePair.Key, keyValuePair.Value);
+                    _rootGroup.AddChild(sectionInfo);
+                }
             }
 
             try
@@ -234,6 +241,24 @@ namespace System.Configuration
             {
                 throw new ConfigurationErrorsException(ex.Message, ex, FileName, 0);
             }
+        }
+
+        private SectionInfo CreateSectionInfo(IConfigSystem system, string configPath, string sectionName, string sectionType)
+        {
+            var sectionInformation = new SectionInformation
+            {
+                Type = sectionType,
+                ConfigFilePath = configPath
+            };
+            sectionInformation.SetName(sectionName);
+
+            var sectionInfo = new SectionInfo(sectionName, sectionInformation)
+            {
+                StreamName = FileName,
+                ConfigHost = system.Host
+            };
+
+            return sectionInfo;
         }
 
         internal Configuration GetParentWithFile()
