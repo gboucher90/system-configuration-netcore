@@ -99,33 +99,15 @@ namespace System.Configuration
             return this;
         }
 
-
-        protected internal override bool IsModified()
-        {
-            return base.IsModified();
-        }
-
-
-        private ConfigurationElement CreateElement(Type t)
-        {
-            var elem = (ConfigurationElement) Activator.CreateInstance(t);
-            elem.Init();
-            elem.Configuration = Configuration;
-            if (IsReadOnly())
-                elem.SetReadOnly();
-            return elem;
-        }
-
         private void DoDeserializeSection(XmlReader reader)
         {
             reader.MoveToContent();
 
             string configSource = null;
-            string localName;
 
             while (reader.MoveToNextAttribute())
             {
-                localName = reader.LocalName;
+                var localName = reader.LocalName;
                 if (localName == "configSource")
                     configSource = reader.Value;
             }
@@ -177,73 +159,6 @@ namespace System.Configuration
             RawXml = File.ReadAllText(path);
             SectionInformation.SetRawXml(RawXml);
             DeserializeElement(XmlReader.Create(new StringReader(RawXml)), false);
-        }
-
-        protected internal virtual string SerializeSection(ConfigurationElement parentElement, string name,
-            ConfigurationSaveMode saveMode)
-        {
-            ExternalDataXml = null;
-            ConfigurationElement elem;
-            if (parentElement != null)
-            {
-                elem = CreateElement(GetType());
-                elem.Unmerge(this, parentElement, saveMode);
-            }
-            else
-                elem = this;
-
-            /*
-			 * FIXME: LAMESPEC
-			 * 
-			 * Cache the current values of 'parentElement' and 'saveMode' for later use in
-			 * ConfigurationElement.SerializeToXmlElement().
-			 * 
-			 */
-            elem.PrepareSave(parentElement, saveMode);
-            var hasValues = elem.HasValues(parentElement, saveMode);
-
-            string ret;
-            using (var sw = new StringWriter())
-            {
-                var xmlWriterSettings = new XmlWriterSettings();
-                xmlWriterSettings.Indent = true;
-                using (var tw = XmlWriter.Create(sw, xmlWriterSettings))
-                {
-                    if (hasValues)
-                        elem.SerializeToXmlElement(tw, name);
-                    else if ((saveMode == ConfigurationSaveMode.Modified) && elem.IsModified())
-                    {
-                        // MS emits an empty section element.
-                        tw.WriteStartElement(name);
-                        tw.WriteEndElement();
-                    }
-                    tw.Dispose();
-                }
-
-                ret = sw.ToString();
-            }
-
-            var configSource = SectionInformation.ConfigSource;
-
-            if (string.IsNullOrEmpty(configSource))
-                return ret;
-
-            ExternalDataXml = ret;
-            using (var sw = new StringWriter())
-            {
-                var haveName = !string.IsNullOrEmpty(name);
-
-                using (var tw = XmlWriter.Create(sw))
-                {
-                    if (haveName)
-                        tw.WriteStartElement(name);
-                    tw.WriteAttributeString("configSource", configSource);
-                    if (haveName)
-                        tw.WriteEndElement();
-                }
-
-                return sw.ToString();
-            }
         }
     }
 }

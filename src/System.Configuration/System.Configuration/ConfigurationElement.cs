@@ -56,8 +56,6 @@ namespace System.Configuration
         private string _rawXml;
         private bool _readOnly;
 
-        private SaveContext _saveContext;
-
         internal Configuration Configuration { get; set; }
 
         public ElementInformation ElementInformation
@@ -480,10 +478,6 @@ namespace System.Configuration
             throw new ConfigurationErrorsException("Required attribute '" + name + "' not found.");
         }
 
-        protected virtual void PreSerialize(XmlWriter writer)
-        {
-        }
-
         protected virtual void PostDeserialize()
         {
         }
@@ -544,62 +538,6 @@ namespace System.Configuration
                 if (element != null)
                     element.ResetModified();
             }
-        }
-
-        protected internal virtual bool SerializeElement(XmlWriter writer, bool serializeCollectionKey)
-        {
-            PreSerialize(writer);
-
-            if (serializeCollectionKey)
-            {
-                var props = GetKeyProperties();
-                foreach (ConfigurationProperty prop in props)
-                    writer.WriteAttributeString(prop.Name, prop.ConvertToString(this[prop.Name]));
-                return props.Count > 0;
-            }
-
-            var wroteData = false;
-
-            foreach (PropertyInformation prop in ElementInformation.Properties)
-            {
-                if (prop.IsElement)
-                    continue;
-
-                if (_saveContext == null)
-                    throw new InvalidOperationException();
-                if (!_saveContext.HasValue(prop))
-                    continue;
-
-                writer.WriteAttributeString(prop.Name, prop.GetStringValue());
-                wroteData = true;
-            }
-
-            foreach (PropertyInformation prop in ElementInformation.Properties)
-            {
-                if (!prop.IsElement)
-                    continue;
-
-                var val = (ConfigurationElement)prop.Value;
-                if (val != null)
-                    wroteData = val.SerializeToXmlElement(writer, prop.Name) || wroteData;
-            }
-            return wroteData;
-        }
-
-        protected internal virtual bool SerializeToXmlElement(
-            XmlWriter writer, string elementName)
-        {
-            if (_saveContext == null)
-                throw new InvalidOperationException();
-            if (!_saveContext.HasValues())
-                return false;
-
-            if (!string.IsNullOrEmpty(elementName))
-                writer.WriteStartElement(elementName);
-            var res = SerializeElement(writer, false);
-            if (!string.IsNullOrEmpty(elementName))
-                writer.WriteEndElement();
-            return res;
         }
 
         protected internal virtual void Unmerge(
@@ -771,119 +709,65 @@ namespace System.Configuration
             return false;
         }
 
-        /*
-		 * Cache the current 'parent' and 'mode' values for later use in SerializeToXmlElement()
-		 * and SerializeElement().
-		 * 
-		 * Make sure to call base when overriding this in a derived class.
-		 */
-
-        internal virtual void PrepareSave(ConfigurationElement parent, ConfigurationSaveMode mode)
+        internal class ElementMap
         {
-            _saveContext = new SaveContext(this, parent, mode);
+            private static readonly Hashtable ElementMaps = Hashtable.Synchronized(new Hashtable());
 
-            foreach (PropertyInformation prop in ElementInformation.Properties)
+            public ElementMap(Type t)
             {
-                if (!prop.IsElement)
-                    continue;
+                Properties = new ConfigurationPropertyCollection();
 
-                var elem = (ConfigurationElement)prop.Value;
-                if (parent == null || !parent.HasValue(prop.Name))
-                    elem.PrepareSave(null, mode);
-                else
+                CollectionAttribute =
+                    t.GetTypeInfo().GetCustomAttribute(typeof(ConfigurationCollectionAttribute)) as
+                        ConfigurationCollectionAttribute;
+                PropertyInfo[] props =
+                    t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static |
+                                    BindingFlags.Instance);
+                foreach (var prop in props)
                 {
-                    var parentValue = (ConfigurationElement)parent[prop.Name];
-                    elem.PrepareSave(parentValue, mode);
+                    var at =
+                        prop.GetCustomAttribute(typeof(ConfigurationPropertyAttribute)) as
+                            ConfigurationPropertyAttribute;
+                    if (at == null) continue;
+                    string name = at.Name != null ? at.Name : prop.Name;
+
+                    var validatorAttr =
+                        prop.GetCustomAttribute(typeof(ConfigurationValidatorAttribute)) as
+                            ConfigurationValidatorAttribute;
+                    var validator = validatorAttr != null ? validatorAttr.ValidatorInstance : null;
+
+
+                    var convertAttr = (TypeConverterAttribute)prop.GetCustomAttribute(typeof(TypeConverterAttribute));
+                    var converter = convertAttr != null
+                        ? (TypeConverter)Activator.CreateInstance(Type.GetType(convertAttr.ConverterTypeName), true)
+                        : null;
+                    var cp = new ConfigurationProperty(name, prop.PropertyType, at.DefaultValue, converter, validator,
+                        at.Options);
+
+                    cp.CollectionAttribute =
+                        prop.GetCustomAttribute(typeof(ConfigurationCollectionAttribute)) as
+                            ConfigurationCollectionAttribute;
+                    Properties.Add(cp);
                 }
             }
-        }
 
-        private class SaveContext
-        {
-            private readonly ConfigurationElement Element;
-            private readonly ConfigurationSaveMode Mode;
-            public readonly ConfigurationElement Parent;
+            public ConfigurationCollectionAttribute CollectionAttribute { get; }
 
-            public SaveContext(ConfigurationElement element, ConfigurationElement parent,
-                ConfigurationSaveMode mode)
+            public bool HasProperties
             {
-                Element = element;
-                Parent = parent;
-                Mode = mode;
+                get { return Properties.Count > 0; }
             }
 
-            public bool HasValues()
+            public ConfigurationPropertyCollection Properties { get; }
+
+            public static ElementMap GetMap(Type t)
             {
-                if (Mode == ConfigurationSaveMode.Full)
-                    return true;
-                return Element.HasValues(Parent, Mode);
+                var map = ElementMaps[t] as ElementMap;
+                if (map != null) return map;
+                map = new ElementMap(t);
+                ElementMaps[t] = map;
+                return map;
             }
-
-            public bool HasValue(PropertyInformation prop)
-            {
-                if (Mode == ConfigurationSaveMode.Full)
-                    return true;
-                return Element.HasValue(Parent, prop, Mode);
-            }
-        }
-    }
-
-    internal class ElementMap
-    {
-        private static readonly Hashtable ElementMaps = Hashtable.Synchronized(new Hashtable());
-
-        public ElementMap(Type t)
-        {
-            Properties = new ConfigurationPropertyCollection();
-
-            CollectionAttribute =
-                t.GetTypeInfo().GetCustomAttribute(typeof(ConfigurationCollectionAttribute)) as
-                    ConfigurationCollectionAttribute;
-            PropertyInfo[] props =
-                t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static |
-                                BindingFlags.Instance);
-            foreach (var prop in props)
-            {
-                var at =
-                    prop.GetCustomAttribute(typeof(ConfigurationPropertyAttribute)) as ConfigurationPropertyAttribute;
-                if (at == null) continue;
-                string name = at.Name != null ? at.Name : prop.Name;
-
-                var validatorAttr =
-                    prop.GetCustomAttribute(typeof(ConfigurationValidatorAttribute)) as ConfigurationValidatorAttribute;
-                var validator = validatorAttr != null ? validatorAttr.ValidatorInstance : null;
-
-
-                var convertAttr = (TypeConverterAttribute)prop.GetCustomAttribute(typeof(TypeConverterAttribute));
-                var converter = convertAttr != null
-                    ? (TypeConverter)Activator.CreateInstance(Type.GetType(convertAttr.ConverterTypeName), true)
-                    : null;
-                var cp = new ConfigurationProperty(name, prop.PropertyType, at.DefaultValue, converter, validator,
-                    at.Options);
-
-                cp.CollectionAttribute =
-                    prop.GetCustomAttribute(typeof(ConfigurationCollectionAttribute)) as
-                        ConfigurationCollectionAttribute;
-                Properties.Add(cp);
-            }
-        }
-
-        public ConfigurationCollectionAttribute CollectionAttribute { get; }
-
-        public bool HasProperties
-        {
-            get { return Properties.Count > 0; }
-        }
-
-        public ConfigurationPropertyCollection Properties { get; }
-
-        public static ElementMap GetMap(Type t)
-        {
-            var map = ElementMaps[t] as ElementMap;
-            if (map != null) return map;
-            map = new ElementMap(t);
-            ElementMaps[t] = map;
-            return map;
         }
     }
 }

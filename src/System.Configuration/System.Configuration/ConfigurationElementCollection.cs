@@ -389,27 +389,6 @@ namespace System.Configuration
             return _modified;
         }
 
-
-        public override bool IsReadOnly()
-        {
-            return base.IsReadOnly();
-        }
-
-        internal override void PrepareSave(ConfigurationElement parentElement, ConfigurationSaveMode mode)
-        {
-            var parent = (ConfigurationElementCollection) parentElement;
-            base.PrepareSave(parentElement, mode);
-
-            for (var n = 0; n < _list.Count; n++)
-            {
-                var elem = (ConfigurationElement) _list[n];
-                var key = GetElementKey(elem);
-                var pitem = parent != null ? parent.BaseGet(key) : null;
-
-                elem.PrepareSave(pitem, mode);
-            }
-        }
-
         internal override bool HasValues(ConfigurationElement parentElement, ConfigurationSaveMode mode)
         {
             var parent = (ConfigurationElementCollection) parentElement;
@@ -464,62 +443,6 @@ namespace System.Configuration
                 var elem = (ConfigurationElement) _list[n];
                 elem.ResetModified();
             }
-        }
-
-
-        protected internal override void SetReadOnly()
-        {
-            base.SetReadOnly();
-        }
-
-        protected internal override bool SerializeElement(XmlWriter writer, bool serializeCollectionKey)
-        {
-            if (serializeCollectionKey)
-            {
-                return base.SerializeElement(writer, true);
-            }
-
-            var wroteData = false;
-
-            if (IsBasic)
-            {
-                for (var n = 0; n < _list.Count; n++)
-                {
-                    var elem = (ConfigurationElement) _list[n];
-                    if (ElementName != string.Empty)
-                        wroteData = elem.SerializeToXmlElement(writer, ElementName) || wroteData;
-                    else
-                        wroteData = elem.SerializeElement(writer, false) || wroteData;
-                }
-            }
-            else
-            {
-                if (EmitClear)
-                {
-                    writer.WriteElementString(ClearElementName, "");
-                    wroteData = true;
-                }
-
-                if (_removed != null)
-                {
-                    for (var n = 0; n < _removed.Count; n++)
-                    {
-                        writer.WriteStartElement(RemoveElementName);
-                        ((ConfigurationElement) _removed[n]).SerializeElement(writer, true);
-                        writer.WriteEndElement();
-                    }
-                    wroteData = wroteData || _removed.Count > 0;
-                }
-
-                for (var n = 0; n < _list.Count; n++)
-                {
-                    var elem = (ConfigurationElement) _list[n];
-                    elem.SerializeToXmlElement(writer, AddElementName);
-                }
-
-                wroteData = wroteData || _list.Count > 0;
-            }
-            return wroteData;
         }
 
         protected override bool OnDeserializeUnrecognizedElement(string elementName, XmlReader reader)

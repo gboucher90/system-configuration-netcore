@@ -105,17 +105,6 @@ namespace System.Configuration
                 Settings.Reset(psec.Settings);
         }
 
-
-        protected internal override string SerializeSection(
-            ConfigurationElement parent, string name, ConfigurationSaveMode mode)
-        {
-            if (File == "")
-            {
-                return base.SerializeSection(parent, name, mode);
-            }
-            throw new NotImplementedException();
-        }
-
         protected internal override object GetRuntimeObject()
         {
             var col = new KeyValueInternalCollection();

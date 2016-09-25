@@ -34,7 +34,6 @@ namespace System.Configuration
     public sealed class IgnoreSection : ConfigurationSection
     {
         private static readonly ConfigurationPropertyCollection properties;
-        private string _xml;
 
         static IgnoreSection()
         {
@@ -53,14 +52,6 @@ namespace System.Configuration
 
         protected internal override void DeserializeSection(XmlReader reader)
         {
-            _xml = reader.ReadOuterXml();
-        }
-
-
-        protected internal override string SerializeSection(ConfigurationElement parentElement, string name,
-            ConfigurationSaveMode saveMode)
-        {
-            return _xml;
         }
     }
 }

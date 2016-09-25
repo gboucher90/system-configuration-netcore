@@ -74,12 +74,5 @@ namespace System.Configuration
         protected internal override void ResetModified()
         {
         }
-
-
-        protected internal override string SerializeSection(ConfigurationElement parentSection, string name,
-            ConfigurationSaveMode saveMode)
-        {
-            return base.SerializeSection(parentSection, name, saveMode);
-        }
     }
 }
