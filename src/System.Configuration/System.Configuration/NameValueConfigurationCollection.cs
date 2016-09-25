@@ -35,11 +35,11 @@ namespace System.Configuration
         CollectionType = ConfigurationElementCollectionType.AddRemoveClearMap)]
     public sealed class NameValueConfigurationCollection : ConfigurationElementCollection
     {
-        private static readonly ConfigurationPropertyCollection properties;
+        private static readonly ConfigurationPropertyCollection _properties;
 
         static NameValueConfigurationCollection()
         {
-            properties = new ConfigurationPropertyCollection();
+            _properties = new ConfigurationPropertyCollection();
         }
 
         public string[] AllKeys
@@ -55,7 +55,7 @@ namespace System.Configuration
 
         protected internal override ConfigurationPropertyCollection Properties
         {
-            get { return properties; }
+            get { return _properties; }
         }
 
         public void Add(NameValueConfigurationElement nameValue)

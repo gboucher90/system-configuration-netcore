@@ -59,10 +59,6 @@ namespace System.Configuration
         {
             get
             {
-#if false
-				if (instance == null)
-					instance = new CallbackValidator (type);
-#endif
                 return _instance;
             }
         }

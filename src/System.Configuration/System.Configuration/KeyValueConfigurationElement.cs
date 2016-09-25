@@ -39,9 +39,7 @@ namespace System.Configuration
             KeyProp = new ConfigurationProperty("key", typeof(string), "", ConfigurationPropertyOptions.IsKey);
             ValueProp = new ConfigurationProperty("value", typeof(string), "");
 
-            properties = new ConfigurationPropertyCollection();
-            properties.Add(KeyProp);
-            properties.Add(ValueProp);
+            properties = new ConfigurationPropertyCollection {KeyProp, ValueProp};
         }
 
         internal KeyValueConfigurationElement()

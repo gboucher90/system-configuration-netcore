@@ -28,13 +28,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if (XML_DEP)
-using System.Xml;
-#else
-using XmlNode = System.Object;
-
-#endif
-
 namespace System.Configuration
 {
     /// <summary>

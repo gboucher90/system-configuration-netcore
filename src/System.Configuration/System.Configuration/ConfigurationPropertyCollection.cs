@@ -31,7 +31,7 @@ using System.Collections.Generic;
 
 namespace System.Configuration
 {
-    public class ConfigurationPropertyCollection : ICollection, IEnumerable
+    public class ConfigurationPropertyCollection : ICollection
     {
         private readonly List<ConfigurationProperty> _collection;
 

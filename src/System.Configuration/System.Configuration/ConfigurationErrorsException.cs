@@ -30,7 +30,6 @@
 //
 
 using System.Collections;
-using System.Configuration.Internal;
 using System.Xml;
 
 namespace System.Configuration

@@ -46,23 +46,21 @@ namespace System.Configuration
             PropSettings = new ConfigurationProperty("", typeof(KeyValueConfigurationCollection), null,
                 null, null, ConfigurationPropertyOptions.IsDefaultCollection);
 
-            _properties = new ConfigurationPropertyCollection();
+            _properties = new ConfigurationPropertyCollection { PropFile, PropSettings };
 
-            _properties.Add(PropFile);
-            _properties.Add(PropSettings);
         }
 
         [ConfigurationProperty("file", DefaultValue = "")]
         public string File
         {
-            get { return (string) base[PropFile]; }
+            get { return (string)base[PropFile]; }
             set { base[PropFile] = value; }
         }
 
         [ConfigurationProperty("", Options = ConfigurationPropertyOptions.IsDefaultCollection)]
         public KeyValueConfigurationCollection Settings
         {
-            get { return (KeyValueConfigurationCollection) base[PropSettings]; }
+            get { return (KeyValueConfigurationCollection)base[PropSettings]; }
         }
 
         protected internal override ConfigurationPropertyCollection Properties
@@ -95,7 +93,7 @@ namespace System.Configuration
                 }
                 catch
                 {
-                    // nada, we just ignore a missing/unreadble file
+                    // ignore a missing/unreadable file
                 }
             }
         }

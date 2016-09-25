@@ -110,12 +110,12 @@ namespace System.Configuration
 
         public AppSettingsSection AppSettings
         {
-            get { return (AppSettingsSection) GetSection("appSettings"); }
+            get { return (AppSettingsSection)GetSection("appSettings"); }
         }
 
         public ConnectionStringsSection ConnectionStrings
         {
-            get { return (ConnectionStringsSection) GetSection("connectionStrings"); }
+            get { return (ConnectionStringsSection)GetSection("connectionStrings"); }
         }
 
         // MSDN: If the value for this FilePath property represents a merged view and 
@@ -222,7 +222,7 @@ namespace System.Configuration
                 _rootGroup = parent._rootGroup;
             else
             {
-                _rootGroup = new SectionGroupInfo {StreamName = FileName};
+                _rootGroup = new SectionGroupInfo { StreamName = FileName };
 
                 // Addd Machine.config sections
                 foreach (var keyValuePair in MachineConfig.ConfigSections)
@@ -392,7 +392,7 @@ namespace System.Configuration
                 var ctx = sec.SectionInformation.AllowExeDefinition !=
                           ConfigurationAllowExeDefinition.MachineToApplication
                     ? sec.SectionInformation.AllowExeDefinition
-                    : (object) sec.SectionInformation.AllowDefinition;
+                    : (object)sec.SectionInformation.AllowDefinition;
                 throw new ConfigurationErrorsException("The section <" + name +
                                                        "> can't be defined in this configuration file (the allowed definition context is '" +
                                                        ctx + "').");

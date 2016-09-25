@@ -300,11 +300,10 @@ namespace System.Configuration
         public override int GetHashCode()
         {
             var code = 0;
-            object o;
 
             foreach (ConfigurationProperty prop in Properties)
             {
-                o = this[prop];
+                var o = this[prop];
                 if (o == null)
                     continue;
 
@@ -375,10 +374,9 @@ namespace System.Configuration
                     throw new ConfigurationErrorsException(
                         "The attribute '" + prop.Name + "' may only appear once in this element.", reader);
 
-                string value = null;
                 try
                 {
-                    value = reader.Value;
+                    var value = reader.Value;
                     ValidateValue(prop.Property, value);
                     prop.SetStringValue(value);
                 }
@@ -596,10 +594,10 @@ namespace System.Configuration
             if (!_saveContext.HasValues())
                 return false;
 
-            if (elementName != null && elementName != "")
+            if (!string.IsNullOrEmpty(elementName))
                 writer.WriteStartElement(elementName);
             var res = SerializeElement(writer, false);
-            if (elementName != null && elementName != "")
+            if (!string.IsNullOrEmpty(elementName))
                 writer.WriteEndElement();
             return res;
         }
@@ -802,8 +800,8 @@ namespace System.Configuration
 
         private class SaveContext
         {
-            public readonly ConfigurationElement Element;
-            public readonly ConfigurationSaveMode Mode;
+            private readonly ConfigurationElement Element;
+            private readonly ConfigurationSaveMode Mode;
             public readonly ConfigurationElement Parent;
 
             public SaveContext(ConfigurationElement element, ConfigurationElement parent,

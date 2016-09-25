@@ -476,7 +476,7 @@ namespace System.Configuration
         {
             if (serializeCollectionKey)
             {
-                return base.SerializeElement(writer, serializeCollectionKey);
+                return base.SerializeElement(writer, true);
             }
 
             var wroteData = false;

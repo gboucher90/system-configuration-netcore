@@ -81,7 +81,7 @@ namespace System.Configuration
 
             public bool MoveNext()
             {
-                return ++_position < _collection.Count ? true : false;
+                return ++_position < _collection.Count;
             }
 
             public void Reset()

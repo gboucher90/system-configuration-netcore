@@ -39,7 +39,7 @@ namespace System.Configuration
         Exclude = 0x10
     }
 
-    public sealed class ConfigurationLockCollection : ICollection, IEnumerable
+    public sealed class ConfigurationLockCollection : ICollection
     {
         private readonly ConfigurationElement _element;
         private readonly ConfigurationLockType _lockType;

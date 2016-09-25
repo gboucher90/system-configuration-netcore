@@ -68,14 +68,15 @@ namespace System.Configuration
                     span = TimeSpan.Parse(value);
                     break;
             }
-            Check(span);
+            Validate(span);
             return span;
         }
 
         internal override string ConvertToString(object value)
         {
-            var span = (TimeSpan) value;
-            Check(span);
+            var span = (TimeSpan)value;
+            Validate(span);
+
             switch (_format)
             {
                 case TimeSpanSerializedFormat.Seconds:
@@ -87,12 +88,14 @@ namespace System.Configuration
             }
         }
 
-        private void Check(TimeSpan span)
+        private void Validate(TimeSpan span)
         {
             if (span.Ticks < 0 && (_tsflags & TimeSpanPropertyFlags.AllowNegative) == 0)
                 throw new ConfigurationErrorsException("TimeSpan value can't be negative");
+
             if (span == TimeSpan.Zero && (_tsflags & TimeSpanPropertyFlags.ProhibitZero) != 0)
                 throw new ConfigurationErrorsException("TimeSpan value can't be zero");
+
             if (span == TimeSpan.MaxValue && (_tsflags & TimeSpanPropertyFlags.AllowInfinite) == 0)
                 throw new ConfigurationErrorsException("TimeSpan value can't be infinite");
         }

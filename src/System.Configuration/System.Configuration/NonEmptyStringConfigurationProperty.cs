@@ -56,7 +56,7 @@ namespace System.Configuration
 
         private string Check(string s)
         {
-            if (s == string.Empty || s == null)
+            if (string.IsNullOrEmpty(s))
                 throw new ConfigurationErrorsException("The property '" + Name + "' can't be empty");
 
             if (_stringFlags == NonEmptyStringFlags.TrimWhitespace)
