@@ -36,23 +36,7 @@ namespace System.Configuration
 
     public sealed class CommaDelimitedStringCollection : StringCollection
     {
-        private bool _modified;
         private int _originalStringHash;
-
-        public bool IsModified
-        {
-            get
-            {
-                if (_modified)
-                    return true;
-
-                var str = ToString();
-                if (str == null)
-                    return false;
-
-                return str.GetHashCode() != _originalStringHash;
-            }
-        }
 
         public new bool IsReadOnly { get; private set; }
 
@@ -64,7 +48,6 @@ namespace System.Configuration
                 if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
                 base[index] = value;
-                _modified = true;
             }
         }
 
@@ -73,7 +56,6 @@ namespace System.Configuration
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
             base.Add(value);
-            _modified = true;
         }
 
         public new void AddRange(string[] range)
@@ -81,7 +63,6 @@ namespace System.Configuration
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
             base.AddRange(range);
-            _modified = true;
         }
 
         public new void Clear()
@@ -89,7 +70,6 @@ namespace System.Configuration
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
             base.Clear();
-            _modified = true;
         }
 
         public CommaDelimitedStringCollection Clone()
@@ -109,7 +89,6 @@ namespace System.Configuration
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
             base.Insert(index, value);
-            _modified = true;
         }
 
         public new void Remove(string value)
@@ -117,7 +96,6 @@ namespace System.Configuration
             if (IsReadOnly) throw new ConfigurationErrorsException("The configuration is read only");
 
             base.Remove(value);
-            _modified = true;
         }
 
         public void SetReadOnly()

@@ -42,18 +42,5 @@ namespace System.Configuration
             : base(col.Count, col)
         {
         }
-
-        public bool IsModified { get; private set; }
-
-        public void ResetModified()
-        {
-            IsModified = false;
-        }
-
-        public override void Set(string name, string value)
-        {
-            base.Set(name, value);
-            IsModified = true;
-        }
     }
 }

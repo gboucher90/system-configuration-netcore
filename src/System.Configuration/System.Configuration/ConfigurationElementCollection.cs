@@ -44,7 +44,6 @@ namespace System.Configuration
 
         private ArrayList _inherited;
         private int _inheritedLimitIndex;
-        private bool _modified;
 
         #region Constructors
 
@@ -174,8 +173,6 @@ namespace System.Configuration
                 }
                 _list.Add(element);
             }
-
-            _modified = true;
         }
 
         protected virtual void BaseAdd(int index, ConfigurationElement element)
@@ -191,7 +188,6 @@ namespace System.Configuration
                 throw new ConfigurationErrorsException("Can't insert new elements above the inherited elements.");
 
             _list.Insert(index, element);
-            _modified = true;
         }
 
         protected internal void BaseClear()
@@ -200,7 +196,6 @@ namespace System.Configuration
                 throw new ConfigurationErrorsException("Collection is read only.");
 
             _list.Clear();
-            _modified = true;
         }
 
         protected internal ConfigurationElement BaseGet(int index)
@@ -260,7 +255,6 @@ namespace System.Configuration
             if (index != -1)
             {
                 BaseRemoveAt(index);
-                _modified = true;
             }
         }
 
@@ -283,8 +277,6 @@ namespace System.Configuration
                 if (_inheritedLimitIndex > 0)
                     _inheritedLimitIndex--;
             }
-
-            _modified = true;
         }
 
         private bool CompareKeys(object key1, object key2)
@@ -362,43 +354,6 @@ namespace System.Configuration
             return !IsReadOnly();
         }
 
-        protected internal override bool IsModified()
-        {
-            if (_modified)
-                return true;
-
-            for (var n = 0; n < _list.Count; n++)
-            {
-                var elem = (ConfigurationElement) _list[n];
-                if (!elem.IsModified())
-                    continue;
-                _modified = true;
-                break;
-            }
-
-            return _modified;
-        }
-
-        internal override bool HasValues(ConfigurationElement parentElement, ConfigurationSaveMode mode)
-        {
-            var parent = (ConfigurationElementCollection) parentElement;
-
-            if (mode == ConfigurationSaveMode.Full)
-                return _list.Count > 0;
-
-            for (var n = 0; n < _list.Count; n++)
-            {
-                var elem = (ConfigurationElement) _list[n];
-                var key = GetElementKey(elem);
-                var pitem = parent != null ? parent.BaseGet(key) : null;
-
-                if (elem.HasValues(pitem, mode))
-                    return true;
-            }
-
-            return false;
-        }
-
         protected internal override void Reset(ConfigurationElement parentElement)
         {
             var basic = IsBasic;
@@ -422,7 +377,6 @@ namespace System.Configuration
                 _inheritedLimitIndex = 0;
             else
                 _inheritedLimitIndex = Count - 1;
-            _modified = false;
         }
 
         protected override bool OnDeserializeUnrecognizedElement(string elementName, XmlReader reader)
@@ -440,7 +394,6 @@ namespace System.Configuration
                 {
                     elem.DeserializeElement(reader, false);
                     BaseAdd(elem);
-                    _modified = false;
                     return true;
                 }
             }
@@ -455,7 +408,6 @@ namespace System.Configuration
                     reader.Skip();
                     BaseClear();
                     EmitClear = true;
-                    _modified = false;
                     return true;
                 }
                 if (elementName == RemoveElementName)
@@ -464,7 +416,6 @@ namespace System.Configuration
                     var removeElem = new ConfigurationRemoveElement(elem, this);
                     removeElem.DeserializeElement(reader, true);
                     BaseRemove(removeElem.KeyValue);
-                    _modified = false;
                     return true;
                 }
                 if (elementName == AddElementName)
@@ -472,7 +423,6 @@ namespace System.Configuration
                     var elem = CreateNewElementInternal(null);
                     elem.DeserializeElement(reader, false);
                     BaseAdd(elem);
-                    _modified = false;
                     return true;
                 }
             }

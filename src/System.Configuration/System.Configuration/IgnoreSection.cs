@@ -45,11 +45,6 @@ namespace System.Configuration
             get { return properties; }
         }
 
-        protected internal override bool IsModified()
-        {
-            return false;
-        }
-
         protected internal override void DeserializeSection(XmlReader reader)
         {
         }

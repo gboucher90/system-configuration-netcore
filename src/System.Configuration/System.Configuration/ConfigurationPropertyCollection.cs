@@ -69,7 +69,7 @@ namespace System.Configuration
 
         void ICollection.CopyTo(Array array, int index)
         {
-            ((ICollection) _collection).CopyTo(array, index);
+            ((ICollection)_collection).CopyTo(array, index);
         }
 
         public IEnumerator GetEnumerator()

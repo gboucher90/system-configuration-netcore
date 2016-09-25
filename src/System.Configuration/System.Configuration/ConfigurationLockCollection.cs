@@ -71,9 +71,6 @@ namespace System.Configuration
             get { return false; /* XXX */ }
         }
 
-
-        public bool IsModified { get; internal set; }
-
         public IEnumerator GetEnumerator()
         {
             return _names.GetEnumerator();
@@ -145,14 +142,12 @@ namespace System.Configuration
             if (!_names.Contains(name))
             {
                 _names.Add(name);
-                IsModified = true;
             }
         }
 
         public void Clear()
         {
             _names.Clear();
-            IsModified = true;
         }
 
         public bool Contains(string name)
@@ -185,7 +180,6 @@ namespace System.Configuration
         public void Remove(string name)
         {
             _names.Remove(name);
-            IsModified = true;
         }
 
         public void SetFromList(string attributeList)

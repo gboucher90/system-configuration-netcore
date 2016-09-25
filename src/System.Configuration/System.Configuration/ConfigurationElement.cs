@@ -52,7 +52,6 @@ namespace System.Configuration
         private ConfigurationLockCollection _lockElements;
 
         private ElementMap _map;
-        private bool _modified;
         private string _rawXml;
         private bool _readOnly;
 
@@ -185,7 +184,6 @@ namespace System.Configuration
                 SetPropertyValue(pi.Property, value, false);
 
                 pi.Value = value;
-                _modified = true;
             }
         }
 
@@ -314,7 +312,7 @@ namespace System.Configuration
         internal virtual bool HasLocalModifications()
         {
             foreach (PropertyInformation pi in ElementInformation.Properties)
-                if (pi.ValueOrigin == PropertyValueOrigin.SetHere && pi.IsModified)
+                if (pi.ValueOrigin == PropertyValueOrigin.SetHere)
                     return true;
 
             return false;
@@ -445,8 +443,6 @@ namespace System.Configuration
                 } while (depth < reader.Depth);
             }
 
-            _modified = false;
-
             foreach (PropertyInformation prop in ElementInformation.Properties)
             {
                 if (!string.IsNullOrEmpty(prop.Name) && prop.IsRequired && !readProps.ContainsKey(prop))
@@ -455,7 +451,6 @@ namespace System.Configuration
                     if (!Equals(val, prop.DefaultValue))
                     {
                         prop.Value = val;
-                        prop.IsModified = false;
                     }
                 }
             }
@@ -484,26 +479,6 @@ namespace System.Configuration
 
         protected internal virtual void InitializeDefault()
         {
-        }
-
-        protected internal virtual bool IsModified()
-        {
-            if (_modified)
-                return true;
-
-            foreach (PropertyInformation prop in ElementInformation.Properties)
-            {
-                if (!prop.IsElement)
-                    continue;
-                var element = prop.Value as ConfigurationElement;
-                if ((element == null) || !element.IsModified())
-                    continue;
-
-                _modified = true;
-                break;
-            }
-
-            return _modified;
         }
 
         protected internal virtual void SetReadOnly()
@@ -549,100 +524,7 @@ namespace System.Configuration
                     string.Format("Validator does not support type {0}", p.Type));
             validator.Validate(p.ConvertFromString(value));
         }
-
-        /*
-		 * FIXME: LAMESPEC
-		 * 
-		 * SerializeElement() and SerializeToXmlElement() need to emit different output
-		 * based on the ConfigurationSaveMode that's being used.  Unfortunately, neither
-		 * of these methods take it as an argument and there seems to be no documented way
-		 * how to get it.
-		 * 
-		 * The parent element is needed because the element could be set to a different
-		 * than the default value in a parent configuration file, then set locally to that
-		 * same value.  This makes the element appear locally modified (so it's included
-		 * with ConfigurationSaveMode.Modified), but it should not be emitted with
-		 * ConfigurationSaveMode.Minimal.
-		 * 
-		 * In theory, we could save it into some private field in Unmerge(), but the
-		 * problem is that Unmerge() is kinda expensive and we also need a way of
-		 * determining whether or not the configuration has changed in Configuration.Save(),
-		 * prior to opening the output file for writing.
-		 * 
-		 * There are two places from where HasValues() is called:
-		 * a) From Configuration.Save() / SaveAs() to check whether the configuration needs
-		 *    to be saved.  This check is done prior to opening the file for writing.
-		 * b) From SerializeToXmlElement() to check whether to emit the element, using the
-		 *    parent and mode values from the cached 'SaveContext'.
-		 * 
-		 */
-
-        /*
-		 * Check whether property 'prop' should be included in the serialized XML
-		 * based on the current ConfigurationSaveMode.
-		 */
-
-        internal bool HasValue(ConfigurationElement parent, PropertyInformation prop,
-            ConfigurationSaveMode mode)
-        {
-            if (prop.ValueOrigin == PropertyValueOrigin.Default)
-                return false;
-
-            if (mode == ConfigurationSaveMode.Modified &&
-                prop.ValueOrigin == PropertyValueOrigin.SetHere && prop.IsModified)
-            {
-                // Value has been modified locally, so we always emit it
-                // with ConfigurationSaveMode.Modified.
-                return true;
-            }
-
-            /*
-			 * Ok, now we have to check whether we're different from the inherited
-			 * value - which could either be a value that's set in a parent
-			 * configuration file or the default value.
-			 */
-
-            var hasParentValue = parent != null && parent.HasValue(prop.Name);
-            var parentOrDefault = hasParentValue ? parent[prop.Name] : prop.DefaultValue;
-
-            if (!prop.IsElement)
-                return !Equals(prop.Value, parentOrDefault);
-
-            /*
-			 * Ok, it's an element that has been set in a parent configuration file.			 * 
-			 * Recursively call HasValues() to check whether it's been locally modified.
-			 */
-            var element = (ConfigurationElement)prop.Value;
-            var parentElement = (ConfigurationElement)parentOrDefault;
-
-            return element.HasValues(parentElement, mode);
-        }
-
-        /*
-		 * Check whether this element should be included in the serialized XML
-		 * based on the current ConfigurationSaveMode.
-		 * 
-		 * The 'parent' value is needed to determine whether the element currently
-		 * has a different value from what's been set in the parent configuration
-		 * hierarchy.
-		 */
-
-        internal virtual bool HasValues(ConfigurationElement parent, ConfigurationSaveMode mode)
-        {
-            if (mode == ConfigurationSaveMode.Full)
-                return true;
-            if (_modified && (mode == ConfigurationSaveMode.Modified))
-                return true;
-
-            foreach (PropertyInformation prop in ElementInformation.Properties)
-            {
-                if (HasValue(parent, prop, mode))
-                    return true;
-            }
-
-            return false;
-        }
-
+       
         internal class ElementMap
         {
             private static readonly Hashtable ElementMaps = Hashtable.Synchronized(new Hashtable());

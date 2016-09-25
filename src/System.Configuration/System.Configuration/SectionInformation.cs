@@ -68,10 +68,7 @@ namespace System.Configuration
             }
         }
 
-        public bool ForceSave { get; set; }
-
         public bool InheritInChildApplications { get; set; }
-
 
         public bool IsDeclarationRequired
         {

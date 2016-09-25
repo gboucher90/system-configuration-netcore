@@ -68,11 +68,6 @@ namespace System.Configuration
             get { return _properties; }
         }
 
-        protected internal override bool IsModified()
-        {
-            return Settings.IsModified();
-        }
-
         protected internal override void DeserializeElement(XmlReader reader, bool serializeCollectionKey)
         {
             /* need to do this so we pick up the File attribute */

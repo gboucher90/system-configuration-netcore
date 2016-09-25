@@ -68,8 +68,6 @@ namespace System.Configuration
 
         public bool IsLocked { get; internal set; }
 
-        public bool IsModified { get; internal set; }
-
         public bool IsRequired
         {
             get { return Property.IsRequired; }
@@ -119,7 +117,6 @@ namespace System.Configuration
             set
             {
                 _val = value;
-                IsModified = true;
                 ValueOrigin = PropertyValueOrigin.SetHere;
             }
         }
