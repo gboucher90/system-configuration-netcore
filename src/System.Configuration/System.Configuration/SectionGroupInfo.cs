@@ -36,7 +36,6 @@ namespace System.Configuration
     {
         private static readonly ConfigInfoCollection EmptyList = new ConfigInfoCollection();
         private ConfigInfoCollection _groups;
-        private bool _modified;
         private ConfigInfoCollection _sections;
 
         public SectionGroupInfo()
@@ -70,7 +69,6 @@ namespace System.Configuration
 
         public void AddChild(ConfigInfo data)
         {
-            _modified = true;
             data.Parent = this;
             if (data is SectionInfo)
             {
@@ -86,7 +84,6 @@ namespace System.Configuration
 
         public void Clear()
         {
-            _modified = true;
             if (_sections != null) _sections.Clear();
             if (_groups != null) _groups.Clear();
         }
@@ -99,7 +96,6 @@ namespace System.Configuration
 
         public void RemoveChild(string name)
         {
-            _modified = true;
             if (_sections != null)
                 _sections.Remove(name);
             if (_groups != null)
@@ -387,27 +383,8 @@ namespace System.Configuration
                 }
         }
 
-        internal override bool HasValues(Configuration config, ConfigurationSaveMode mode)
-        {
-            if (_modified && (mode == ConfigurationSaveMode.Modified))
-                return true;
-
-            foreach (ConfigInfoCollection col in new object[] {Sections, Groups})
-            {
-                foreach (string key in col)
-                {
-                    var cinfo = col[key];
-                    if (cinfo.HasValues(config, mode))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         internal override void ResetModified(Configuration config)
         {
-            _modified = false;
             foreach (ConfigInfoCollection col in new object[] {Sections, Groups})
             {
                 foreach (string key in col)

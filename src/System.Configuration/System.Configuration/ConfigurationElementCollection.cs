@@ -32,14 +32,12 @@
 //
 
 using System.Collections;
-using System.Diagnostics;
 using System.Reflection;
 using System.Xml;
 
 namespace System.Configuration
 {
-    [DebuggerDisplay("Count = {Count}")]
-    public abstract partial class ConfigurationElementCollection : ConfigurationElement, ICollection, IEnumerable
+    public abstract partial class ConfigurationElementCollection : ConfigurationElement, ICollection
     {
         private readonly IComparer _comparer;
         private readonly ArrayList _list = new ArrayList();
@@ -47,7 +45,6 @@ namespace System.Configuration
         private ArrayList _inherited;
         private int _inheritedLimitIndex;
         private bool _modified;
-        private ArrayList _removed;
 
         #region Constructors
 
@@ -251,13 +248,6 @@ namespace System.Configuration
 
         protected internal bool BaseIsRemoved(object key)
         {
-            if (_removed == null)
-                return false;
-            foreach (ConfigurationElement elem in _removed)
-            {
-                if (CompareKeys(GetElementKey(elem), key))
-                    return true;
-            }
             return false;
         }
 
@@ -435,16 +425,6 @@ namespace System.Configuration
             _modified = false;
         }
 
-        protected internal override void ResetModified()
-        {
-            _modified = false;
-            for (var n = 0; n < _list.Count; n++)
-            {
-                var elem = (ConfigurationElement) _list[n];
-                elem.ResetModified();
-            }
-        }
-
         protected override bool OnDeserializeUnrecognizedElement(string elementName, XmlReader reader)
         {
             if (IsBasic)
@@ -499,49 +479,6 @@ namespace System.Configuration
 
             return false;
         }
-
-        protected internal override void Unmerge(ConfigurationElement sourceElement, ConfigurationElement parentElement,
-            ConfigurationSaveMode updateMode)
-        {
-            var source = (ConfigurationElementCollection) sourceElement;
-            var parent = (ConfigurationElementCollection) parentElement;
-
-            for (var n = 0; n < source.Count; n++)
-            {
-                var sitem = source.BaseGet(n);
-                var key = source.GetElementKey(sitem);
-                var pitem = parent != null ? parent.BaseGet(key) : null;
-                var nitem = CreateNewElementInternal(null);
-                if (pitem != null && updateMode != ConfigurationSaveMode.Full)
-                {
-                    nitem.Unmerge(sitem, pitem, updateMode);
-                    if (nitem.HasValues(pitem, updateMode))
-                        BaseAdd(nitem);
-                }
-                else
-                {
-                    nitem.Unmerge(sitem, null, ConfigurationSaveMode.Full);
-                    BaseAdd(nitem);
-                }
-            }
-
-            if (updateMode == ConfigurationSaveMode.Full)
-                EmitClear = true;
-            else if (parent != null)
-            {
-                for (var n = 0; n < parent.Count; n++)
-                {
-                    var pitem = parent.BaseGet(n);
-                    var key = parent.GetElementKey(pitem);
-                    if (source.IndexOfKey(key) == -1)
-                    {
-                        if (_removed == null) _removed = new ArrayList();
-                        _removed.Add(pitem);
-                    }
-                }
-            }
-        }
-
         #endregion // Methods
     }
 }

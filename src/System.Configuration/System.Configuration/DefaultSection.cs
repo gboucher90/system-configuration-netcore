@@ -58,21 +58,9 @@ namespace System.Configuration
                 xmlReader.Skip();
         }
 
-
-        protected internal override bool IsModified()
-        {
-            return base.IsModified();
-        }
-
-
         protected internal override void Reset(ConfigurationElement parentSection)
         {
             base.Reset(parentSection);
-        }
-
-
-        protected internal override void ResetModified()
-        {
         }
     }
 }

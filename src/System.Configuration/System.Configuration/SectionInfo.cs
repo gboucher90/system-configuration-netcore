@@ -189,22 +189,8 @@ namespace System.Configuration
         {
         }
 
-        internal override bool HasValues(Configuration config, ConfigurationSaveMode mode)
-        {
-            var section = config.GetSectionInstance(this, false);
-            if (section == null)
-                return false;
-
-            var parent = config.Parent != null ? config.Parent.GetSectionInstance(this, false) : null;
-            return section.HasValues(parent, mode);
-        }
-
         internal override void ResetModified(Configuration config)
         {
-            var section = config.GetSectionInstance(this, false);
-            if (section != null)
-            {
-            }
         }
     }
 }

@@ -526,72 +526,6 @@ namespace System.Configuration
                 InitializeDefault();
         }
 
-        protected internal virtual void ResetModified()
-        {
-            _modified = false;
-
-            foreach (PropertyInformation p in ElementInformation.Properties)
-            {
-                p.IsModified = false;
-
-                var element = p.Value as ConfigurationElement;
-                if (element != null)
-                    element.ResetModified();
-            }
-        }
-
-        protected internal virtual void Unmerge(
-            ConfigurationElement source, ConfigurationElement parent,
-            ConfigurationSaveMode updateMode)
-        {
-            if (parent != null && source.GetType() != parent.GetType())
-                throw new ConfigurationErrorsException("Can't unmerge two elements of different type");
-
-            var isMinimalOrModified = updateMode == ConfigurationSaveMode.Minimal ||
-                                      updateMode == ConfigurationSaveMode.Modified;
-
-            foreach (PropertyInformation prop in source.ElementInformation.Properties)
-            {
-                if (prop.ValueOrigin == PropertyValueOrigin.Default)
-                    continue;
-
-                var unmergedProp = ElementInformation.Properties[prop.Name];
-
-                var sourceValue = prop.Value;
-                if (parent == null || !parent.HasValue(prop.Name))
-                {
-                    unmergedProp.Value = sourceValue;
-                    continue;
-                }
-
-                if (sourceValue == null)
-                    continue;
-
-                var parentValue = parent[prop.Name];
-                if (!prop.IsElement)
-                {
-                    if (!Equals(sourceValue, parentValue) ||
-                        (updateMode == ConfigurationSaveMode.Full) ||
-                        (updateMode == ConfigurationSaveMode.Modified && prop.ValueOrigin == PropertyValueOrigin.SetHere))
-                        unmergedProp.Value = sourceValue;
-                    continue;
-                }
-
-                var sourceElement = (ConfigurationElement)sourceValue;
-                if (isMinimalOrModified && !sourceElement.IsModified())
-                    continue;
-                if (parentValue == null)
-                {
-                    unmergedProp.Value = sourceValue;
-                    continue;
-                }
-
-                var parentElement = (ConfigurationElement)parentValue;
-                var copy = (ConfigurationElement)unmergedProp.Value;
-                copy.Unmerge(sourceElement, parentElement, updateMode);
-            }
-        }
-
         internal bool HasValue(string propName)
         {
             var info = ElementInformation.Properties[propName];
@@ -604,7 +538,7 @@ namespace System.Configuration
             return info != null && info.ValueOrigin == PropertyValueOrigin.SetHere;
         }
 
-        private void ValidateValue(ConfigurationProperty p, string value)
+        private static void ValidateValue(ConfigurationProperty p, string value)
         {
             ConfigurationValidatorBase validator;
             if (p == null || (validator = p.Validator) == null)
