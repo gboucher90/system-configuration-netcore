@@ -8,6 +8,22 @@ namespace System.Configuration.Test
     [TestFixture]
     public class ConfigurationManagerTest
     {
+        [SetUp]
+        public void SetUp()
+        {
+            ConfigurationManager.Reset();
+        }
+
+        [Test]
+        public void TryToDetectAppConfigFileIfNotInitialized()
+        {
+            Assert.AreEqual("AutoDetectValue", ConfigurationManager.AppSettings["AutoDetectKey"]);
+
+            var database = ConfigurationManager.ConnectionStrings["AutoMyDataBase"];
+            Assert.AreEqual("AutoMyDataBase", database.Name);
+            Assert.AreEqual("Data Source=(LocalDB);Integrated Security=True;", database.ConnectionString);
+            Assert.AreEqual("AutoSomeProvider", database.ProviderName);
+        }
 
         [TestCase("App.implicit.config")]
         [TestCase("App.explicit.config")]

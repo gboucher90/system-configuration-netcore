@@ -1,6 +1,6 @@
 ﻿{
   "buildOptions": {
-    "copyToOutput": { "include": [ "Data" ] }
+    "copyToOutput": { "include": [ "App.config", "Data" ] }
   },
   "dependencies": {
     "System.Configuration": {

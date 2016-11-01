@@ -48,18 +48,22 @@ namespace System.Configuration
 
         public static NameValueCollection AppSettings
         {
-            get { return (NameValueCollection) GetSection("appSettings"); }
+            get { return (NameValueCollection)GetSection("appSettings"); }
         }
 
         public static ConnectionStringSettingsCollection ConnectionStrings
         {
             get
             {
-                var connectionStrings = (ConnectionStringsSection) GetSection("connectionStrings");
+                var connectionStrings = (ConnectionStringsSection)GetSection("connectionStrings");
                 return connectionStrings.ConnectionStrings;
             }
         }
 
+        /// <summary>
+        /// Initialize explicitly the configuration manager with the specified file.
+        /// </summary>
+        /// <param name="exePath"></param>
         public static void Initialize(string exePath)
         {
             if (string.IsNullOrEmpty(exePath))
@@ -82,6 +86,14 @@ namespace System.Configuration
             ConfigurationSystem = new ClientConfigurationSystem(exePath);
         }
 
+        /// <summary>
+        /// Reset the configuration manager to its original state prior to Initialize().
+        /// </summary>
+        public static void Reset()
+        {
+            ConfigurationSystem = new ClientConfigurationSystem();
+        }
+
         internal static Configuration OpenExeConfigurationInternal(ConfigurationUserLevel userLevel,
             Assembly callingAssembly, string exePath)
         {
@@ -89,8 +101,13 @@ namespace System.Configuration
 
             if (string.IsNullOrEmpty(exePath))
             {
-                throw new ArgumentException("A valid path must be supplied", "exePath");
+                exePath = TryAutoDetectConfigFile(callingAssembly);
+                if (exePath == null)
+                {
+                    throw new ArgumentException("A valid path must be supplied", "exePath");
+                }
             }
+
             if (!Path.IsPathRooted(exePath))
                 exePath = Path.GetFullPath(exePath);
             if (!File.Exists(exePath))
@@ -130,13 +147,49 @@ namespace System.Configuration
         {
             var o = ConfigurationSystem.GetSection(sectionName);
             if (o is ConfigurationSection)
-                return ((ConfigurationSection) o).GetRuntimeObject();
+                return ((ConfigurationSection)o).GetRuntimeObject();
             return o;
         }
 
         public static void RefreshSection(string sectionName)
         {
             ConfigurationSystem.RefreshConfig(sectionName);
+        }
+
+        private static string TryAutoDetectConfigFile(Assembly callingAssembly)
+        {
+            var appDirectoryFromContext = AppContext.BaseDirectory;
+            var firstTry = TryAutoDetectConfigFile(appDirectoryFromContext, callingAssembly);
+            if (firstTry != null)
+            {
+                return firstTry;
+            }
+
+            var appDirectoryFromAssembly = Path.GetDirectoryName(callingAssembly.Location);
+            return TryAutoDetectConfigFile(appDirectoryFromAssembly, callingAssembly);
+        }
+
+        private static string TryAutoDetectConfigFile(string appDirectory, Assembly callingAssembly)
+        {
+            var exeConfigFile = Path.Combine(appDirectory, callingAssembly.GetName().Name + ".exe.config");
+            if (File.Exists(exeConfigFile))
+            {
+                return exeConfigFile;
+            }
+
+            var appConfigFile = Path.Combine(appDirectory, "App.config");
+            if (File.Exists(appConfigFile))
+            {
+                return appConfigFile;
+            }
+
+            var webConfigFile = Path.Combine(appDirectory, "Web.config");
+            if (File.Exists(webConfigFile))
+            {
+                return webConfigFile;
+            }
+
+            return null;
         }
     }
 }
