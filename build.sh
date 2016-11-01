@@ -11,5 +11,5 @@ fi
 
 dotnet restore
 dotnet build ./src/* -c Release
-dotnet test ./test/* -c Release -f netcoreapp1.0
+dotnet test ./test/* -c Release
 dotnet pack ./src/* -c Release -o ./artifacts
